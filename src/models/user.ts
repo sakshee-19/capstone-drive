@@ -5,5 +5,6 @@ export interface User {
     mobile: string,
     createdAt: string,
     modifiedAt: string,
-    city: string
+    city: string,
+    auth: string
 }

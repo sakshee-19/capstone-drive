@@ -8,8 +8,9 @@ const logger = createLogger('create user lambda ')
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
     console.log(" event create user ", event);
     logger.info('processing event ', {event: event})
-    const newUser: UserRequest = JSON.parse(event.body)
+    
     try {
+        const newUser: UserRequest = JSON.parse(event.body)
         const authToken = event.headers.Authorization
         const split = authToken.split(" ")
         const jwt = split[1]

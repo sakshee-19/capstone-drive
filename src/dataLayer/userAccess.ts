@@ -28,7 +28,6 @@ export class UserAccess {
     }
 
     async getUser(userId: string): Promise<User> {
-    
         const result = await this.docClient.get({
             TableName: this.userTable,
             Key: {userId}
@@ -38,8 +37,13 @@ export class UserAccess {
     } 
 
 
-    async updateUser(userId:string, userData: UserUpdateReq) {
+    async updateUser(userId:string, userData: UserUpdateReq, auth: string) {
         try {
+
+            const user = await this.getUser(userId)
+            if( user.auth !== auth) {
+                return 
+            }
 
             const updatedUser = await this.docClient.update({
                 TableName: this.userTable,
@@ -56,6 +60,7 @@ export class UserAccess {
             return updatedUser
         } catch(e) {
             console.log("error in update ",e.message)
+            return 
         }
     }   
 }

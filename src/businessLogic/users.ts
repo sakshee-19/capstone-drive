@@ -5,20 +5,22 @@ import { UserUpdate } from "../models/userUpdate";
 import { UserAccess } from "../dataLayer/userAccess"
 import { createLogger } from "../utils/logger";
 import { UserUpdateReq } from "../requests/userUpdateReq";
+import * as uuid from "uuid"
 
 const userAccess = new UserAccess();
 
 const logger = createLogger("users bl")
 
 export async  function createUser(userReq: UserRequest, jwtToken:string):Promise<User> {
-    const userId = parseUser(jwtToken);
-    console.log("user id ", userId)
+    const userAuthId = parseUser(jwtToken);
+    console.log("user id ", userAuthId)
     logger.info(" proccessing request ", {userReq: userReq})
     const user: User = {
-        userId: userId,
+        userId: uuid.v4(),
         ...userReq,
         createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString()
+        modifiedAt: new Date().toISOString(),
+        auth: userAuthId
     }
     return await userAccess.createUser(user)
 }
@@ -33,12 +35,12 @@ export async  function getAll():Promise<User[]> {
     return await userAccess.getAllUser()
 }
 
-export async  function modifyUser(userUpdateReq: UserUpdateReq, jwtToken:string) {
-    const userId = parseUser(jwtToken);
-    logger.info(" proccessing request ", {userUpdateReq: userUpdateReq})
+export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, jwtToken:string) {
+    const auth = parseUser(jwtToken)
+    logger.info(" proccessing request ", {userUpdateReq: userUpdateReq, userId: userId})
     const user: UserUpdate = {
         ...userUpdateReq,
-        modifiedAt: new Date().toISOString()
+        modifiedAt: new Date().toISOString(),
     }
-    return await userAccess.updateUser(userId, user)
+    return await userAccess.updateUser(userId, user, auth)
 }
