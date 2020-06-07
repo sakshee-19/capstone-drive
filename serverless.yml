@@ -12,6 +12,7 @@ custom:
 # Add the serverless-webpack plugin
 plugins:
   - serverless-webpack
+  - serverless-iam-roles-per-function
 
 provider:
   name: aws
@@ -39,7 +40,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self.provider.environment.USERS}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
 
   getUser:
     handler: src/lambda/getUser.handler
@@ -52,7 +53,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self.provider.environment.USERS}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
   
   updateUser:
     handler: src/lambda/updateUser.handler
@@ -66,7 +67,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self.provider.environment.USERS}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
 
 #  resourcess
 resources:
@@ -76,9 +77,9 @@ resources:
       Properties:
         AttributeDefinitions:
           - AttributeName: userId
-          - AttributeType: S
+            AttributeType: S
         KeySchema:
           - AttributeName: userId
-          - AttributeType: HASH
+            KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.USERS}

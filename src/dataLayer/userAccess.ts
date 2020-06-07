@@ -11,7 +11,7 @@ export class UserAccess {
     ){}
 
     async createUser(newUser: User): Promise<User>{
-        
+        console.log("createing user in user access ", newUser)
         await this.docClient.put({
             TableName: this.userTable,
             Item: newUser
@@ -28,10 +28,12 @@ export class UserAccess {
     }
 
     async getUser(userId: string): Promise<User> {
+    
         const result = await this.docClient.get({
             TableName: this.userTable,
             Key: {userId}
         }).promise()
+        console.log(result)
         return result.Item as User
     } 
 

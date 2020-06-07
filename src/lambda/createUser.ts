@@ -3,10 +3,11 @@ import { createLogger } from "../utils/logger"
 import { createUser } from "../businessLogic/users"
 import { UserRequest } from "../requests/userRequest";
 
-const logger = createLogger("create user lambda ")
+const logger = createLogger('create user lambda ')
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
-    logger.info("processing event ", {event: event})
+    console.log(" event create user ", event);
+    logger.info('processing event ', {event: event})
     const newUser: UserRequest = JSON.parse(event.body)
     try {
         const authToken = event.headers.Authorization
@@ -27,6 +28,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
           }
 
     } catch (e) {
+        console.log("error ",e.message)
         logger.info("could not process request ", {error: e})
         return {
             statusCode: 400,

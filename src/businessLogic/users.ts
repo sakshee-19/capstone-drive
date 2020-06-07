@@ -12,6 +12,7 @@ const logger = createLogger("users bl")
 
 export async  function createUser(userReq: UserRequest, jwtToken:string):Promise<User> {
     const userId = parseUser(jwtToken);
+    console.log("user id ", userId)
     logger.info(" proccessing request ", {userReq: userReq})
     const user: User = {
         userId: userId,

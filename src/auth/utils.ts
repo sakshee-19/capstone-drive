@@ -5,7 +5,8 @@ import { JwtPayload } from "./jwtPayload";
 const logger = createLogger("auth util");
 
 export function parseUser(jwtToken: string): string {
-    logger.log(" userToken: ", jwtToken)
+    console.log(" print utils parseUSer")
+    logger.info(" userToken ", {jwtToken: jwtToken})
     const jwt = decode(jwtToken) as JwtPayload
     return jwt.sub
 }

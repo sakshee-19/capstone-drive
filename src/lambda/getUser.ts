@@ -9,6 +9,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     const userId = event.pathParameters.userId;
 
     const item = await get(userId)
+    console.log(item)
+    
 
     return {
         statusCode: 200,
