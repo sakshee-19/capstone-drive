@@ -7,7 +7,9 @@
     "url": "https://github.com/sakshee-19/capstone-drive/"
   },
   "dependencies": {
+    "jsonwebtoken": "^8.5.1",
     "source-map-support": "^0.5.10",
+    "uuid": "^8.1.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
