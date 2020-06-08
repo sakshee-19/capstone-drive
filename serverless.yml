@@ -36,6 +36,8 @@ provider:
   
   environment:
     USERS: Users-${self:provider.stage}
+    FILES_INFO: Files-info-${self:provider.stage}
+    FILE_INDEX: FilesIdIndex
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
 functions:
@@ -80,6 +82,83 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+  createFilesInfo:
+    handler: src/lambda/files/createFilesInfo.handler
+    events:
+      - http:
+          method: post
+          path: users/{userId}/files
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+
+  getFileInfo:
+    handler: src/lambda/files/getFileInfo.handler
+    events:
+      - http:
+          method: get
+          path: files/{filesId}
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+  
+  getFilesInfo:
+    handler: src/lambda/files/getAllFilesInfo.handler
+    events:
+      - http:
+          method: get
+          path: users/{userId}/files
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+  
+  updateFileInfo:
+    handler: src/lambda/files/updateFileInfo.handler
+    events:
+      - http:
+          method: patch
+          path: users/{userId}/files/{fileId}
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+  
+  deleteFileInfo:
+    handler: src/lambda/files/deleteFileInfo.handler
+    events:
+      - http:
+          method: delete
+          path: users/{userId}/files/{fileId}
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+     
 
 #  resourcess
 resources:
@@ -95,3 +174,27 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.USERS}
+  
+  
+    FilesInfoTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: fileId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: fileId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.FILE_INDEX}
+            KeySchema:
+            - AttributeName: fileId
+              KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TableName: ${self:provider.environment.FILES_INFO}
