@@ -17,12 +17,12 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
         const fileBody: FileInfoUpdateReq = JSON.parse(event.body)
         const res = await modifyFileInfo(fileBody, userId, fileId, jwtToken)
         return {
-            statusCode: 400,
+            statusCode: 200,
             headers: {
               'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Credentials': true
             },
-            body: JSON.stringify({item: res})
+            body: JSON.stringify({item: res.Attributes})
         }    
 
     } catch (e) {

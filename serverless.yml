@@ -101,7 +101,7 @@ functions:
     events:
       - http:
           method: get
-          path: files/{filesId}
+          path: files/{fileId}
           cors: true
     iamRoleStatements:
       - Effect: Allow

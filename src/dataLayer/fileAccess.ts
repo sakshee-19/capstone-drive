@@ -26,6 +26,7 @@ export class FileInfoAccess {
     }
 
     async getFileInfo(fileId: string): Promise<FileInfo> {
+        console.log("file id ", fileId)
         const file = await this.docClient.query({
             TableName: this.fileInfoTable,
             IndexName: this.fileIndex,
@@ -41,7 +42,7 @@ export class FileInfoAccess {
     async getAllFileInfo(userId: string): Promise<FileInfo[]> {
         const result = await this.docClient.query({
             TableName: this.fileInfoTable,
-            KeyConditionExpression: 'userId =: userId',
+            KeyConditionExpression: 'userId = :userId',
             ExpressionAttributeValues: {
                 ':userId': userId
             }
@@ -51,7 +52,7 @@ export class FileInfoAccess {
     } 
 
 
-    async updateFileInfo(fileInfoId:string, userId:string, fileInfoData: FileInfoUpdate, auth: string) {
+    async updateFileInfo(fileId:string, userId:string, fileInfoData: FileInfoUpdate, auth: string) {
         try {
             const user = await this.userAccess.getUser(userId)
             console.log("user  ", user)
@@ -63,7 +64,7 @@ export class FileInfoAccess {
             console.log("data passes to update fileInfo ",fileInfoData)
             const updatedFileInfo = await this.docClient.update({
                 TableName: this.fileInfoTable,
-                Key: {fileInfoId, userId},
+                Key: {fileId, userId},
                 ExpressionAttributeNames: {"#N" : "name"},
                 UpdateExpression: "set #N=:filename, descripition=:descripition, modifiedAt=:modifiedAt",
                 ExpressionAttributeValues: {
