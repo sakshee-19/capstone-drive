@@ -36,6 +36,7 @@ export async  function getAll():Promise<User[]> {
 }
 
 export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, jwtToken:string) {
+    try{
     const auth = parseUser(jwtToken)
     logger.info(" proccessing request ", {userUpdateReq: userUpdateReq, userId: userId})
     const user: UserUpdate = {
@@ -43,4 +44,8 @@ export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, 
         modifiedAt: new Date().toISOString(),
     }
     return await userAccess.updateUser(userId, user, auth)
+} catch(e) {
+    logger.info("caught error", {error: e})
+    return undefined
+}
 }

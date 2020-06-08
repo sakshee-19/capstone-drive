@@ -39,12 +39,12 @@ export class UserAccess {
 
     async updateUser(userId:string, userData: UserUpdateReq, auth: string) {
         try {
-
             const user = await this.getUser(userId)
+            console.log("user ", user)
             if( user.auth !== auth) {
                 return 
             }
-
+            console.log("data passes to update user ",userData)
             const updatedUser = await this.docClient.update({
                 TableName: this.userTable,
                 Key: {userId},
@@ -54,17 +54,24 @@ export class UserAccess {
                     ":email": userData.email,
                     ":mobile": userData.mobile
                 },
-                ReturnValues: "UPDATED_NEW"
+                ReturnValues: 'UPDATED_NEW'
             }).promise()
             console.log("updated user ", updatedUser);
             return updatedUser
         } catch(e) {
             console.log("error in update ",e.message)
-            return 
+            return undefined
         }
     }   
 }
 
 function createDynamoDBClient() {
+    if(process.env.IS_OFFLINE) {
+        console.log("offline ");
+        return new AWS.DynamoDB.DocumentClient({
+            region: 'localhost',
+            endpoint: 'http://localhost:8000'
+        })
+    }
     return new AWS.DynamoDB.DocumentClient()
 }
