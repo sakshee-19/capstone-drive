@@ -16,6 +16,16 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         const jwt = split[1]
 
         const item = await createUser(newUser, jwt)
+        if(item == undefined) {
+            return {
+                statusCode: 400,
+                headers: {
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Credentials': true
+                },
+                body: JSON.stringify({})
+              }    
+        }
 
         return {
             statusCode: 201,

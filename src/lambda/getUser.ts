@@ -10,7 +10,15 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
     const item = await get(userId)
     console.log(item)
-    
+    if(item == undefined) {
+        return {
+            statusCode: 404,
+            headers: {
+              'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify("user does not exist")
+          }    
+    }
 
     return {
         statusCode: 200,

@@ -11,6 +11,15 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         const jwtToken = getToken(event.headers.Authorization)
         const userId = event.pathParameters.userId
         const item = await modifyUser(userUpdate, userId, jwtToken)
+        if(item == undefined) {
+            return {
+                statusCode: 400,
+                headers: {
+                  'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify("user does not exist")
+              }    
+        }
         return {
             statusCode: 200,
             headers: {
