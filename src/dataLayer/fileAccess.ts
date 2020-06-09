@@ -11,7 +11,8 @@ export class FileInfoAccess {
         private readonly fileInfoTable: string = process.env.FILES_INFO,
         private readonly fileIndex: string = process.env.FILE_INDEX,
         private readonly userAccess: UserAccess = new UserAccess(),
-        private readonly s3Bucket: string = "s3"
+        private readonly s3Bucket: string = process.env.S3_BUCKET,
+        private readonly  s3 = createS3()
     ){}
 
     async createFileInfo(newFileInfo: FileInfo): Promise<FileInfo>{
@@ -109,6 +110,14 @@ export class FileInfoAccess {
             return returnObject(400, e.message)
         }
     }
+
+    generateSignedUrl(fileId: string) {
+        return this.s3.getSignedUrl('putObject', {
+            Bucket: this.s3Bucket,
+            Key: fileId,
+            Expires: 300
+        })
+    }
 }
 
 function createDynamoDBClient() {
@@ -122,6 +131,11 @@ function createDynamoDBClient() {
     return new AWS.DynamoDB.DocumentClient()
 }
 
+function  createS3() {
+    return new AWS.S3({
+        signatureVersion: 'v4'
+    })
+}
 function  returnObject(code:number, message: string) {
     return {
         "code": code,
