@@ -56,9 +56,11 @@ export class FileInfoAccess {
         try {
             const user = await this.userAccess.getUser(userId)
             console.log("user  ", user)
-            
+            if(!user) {
+                return returnObject(404, "user does not exists")
+            }
             if( user.auth !== auth) {
-                return 
+                return returnObject(400, "User not authorised to perform this operation")
             }
             
             console.log("data passes to update fileInfo ",fileInfoData)
@@ -78,23 +80,34 @@ export class FileInfoAccess {
             return updatedFileInfo
         } catch(e) {
             console.log("error in update ",e.message)
-            return e.message
+            return returnObject(400, e.message)
         }
     }
     
     async deleteFileInfo(fileId:string, userId:string, auth:string) {
         const user = await this.userAccess.getUser(userId)
         console.log("user  ", user)
-        
-        if( user.auth !== auth) {
-            return 
+        if(!user) {
+            return returnObject(404, "user does not exists")
         }
-        const data = await this.docClient.delete ({
-            TableName: this.fileInfoTable,
-            Key: {userId, fileId}
-        }).promise()
-        
-        return data
+        if( user.auth !== auth) {
+            return returnObject(400,"user not authorised")
+        }
+        try {
+            const data = await this.docClient.delete ({
+                TableName: this.fileInfoTable,
+                Key: {userId, fileId}
+            }).promise()
+            
+            const Item = {
+                ...data,
+                error: null,
+                code: 200
+            }
+            return Item
+        } catch (e) {
+            return returnObject(400, e.message)
+        }
     }
 }
 
@@ -107,4 +120,12 @@ function createDynamoDBClient() {
         })
     }
     return new AWS.DynamoDB.DocumentClient()
+}
+
+function  returnObject(code:number, message: string) {
+    return {
+        "code": code,
+        "error": message,
+        "Attributes": null
+    }   
 }

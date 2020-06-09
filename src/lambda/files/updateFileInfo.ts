@@ -10,12 +10,15 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
     try{
         const jwtToken = getToken(event.headers.Authorization)
         if(!jwtToken){
-            return returnError("Auth Token Required")
+            return returnError(400, "Auth Token Required")
         }
         const userId = event.pathParameters.userId
         const fileId = event.pathParameters.fileId
         const fileBody: FileInfoUpdateReq = JSON.parse(event.body)
         const res = await modifyFileInfo(fileBody, userId, fileId, jwtToken)
+        if(res.Attributes) {
+            return returnError(res.code, res.message)
+        }
         return {
             statusCode: 200,
             headers: {
@@ -27,13 +30,13 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
 
     } catch (e) {
         logger.info("caught error ", {error: e})
-        return returnError (e.message)
+        return returnError (400, e.message)
     }
 }
 
-function returnError(message:string) {
+function returnError(code: number, message:string) {
     return {
-        statusCode: 400,
+        statusCode: code,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Credentials': true
