@@ -1,0 +1,46 @@
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { createLogger } from "../../utils/logger";
+import { getToken } from "../../auth/utils";
+import { modifyFileInfo } from "../../businessLogic/files";
+import { FileInfoUpdateReq } from "../../requests/fileInfoUpdateReq";
+
+const logger = createLogger("update a file ")
+export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
+    logger.info('processing event ', {event: event})
+    try{
+        const jwtToken = getToken(event.headers.Authorization)
+        if(!jwtToken){
+            return returnError(400, "Auth Token Required")
+        }
+        const userId = event.pathParameters.userId
+        const fileId = event.pathParameters.fileId
+        const fileBody: FileInfoUpdateReq = JSON.parse(event.body)
+        const res = await modifyFileInfo(fileBody, userId, fileId, jwtToken)
+        if(res.Attributes) {
+            return returnError(res.code, res.message)
+        }
+        return {
+            statusCode: 200,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Credentials': true
+            },
+            body: JSON.stringify({item: res.Attributes})
+        }    
+
+    } catch (e) {
+        logger.info("caught error ", {error: e})
+        return returnError (400, e.message)
+    }
+}
+
+function returnError(code: number, message:string) {
+    return {
+        statusCode: code,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true
+        },
+        body: JSON.stringify(message)
+    }
+}
