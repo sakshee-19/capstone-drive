@@ -11,7 +11,7 @@ export class FileInfoAccess {
         private readonly fileInfoTable: string = process.env.FILES_INFO,
         private readonly fileIndex: string = process.env.FILE_INDEX,
         private readonly userAccess: UserAccess = new UserAccess(),
-        private readonly s3Bucket: string = "s3"
+        private readonly s3Bucket: string = process.env.S3_BUCKET
     ){}
 
     async createFileInfo(newFileInfo: FileInfo): Promise<FileInfo>{
