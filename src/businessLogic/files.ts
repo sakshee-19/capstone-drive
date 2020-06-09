@@ -6,12 +6,13 @@ import { FileInfoReq } from "../requests/fileInfoReq";
 import { FileInfo } from "../models/fileInfo";
 import { FileInfoUpdateReq } from "../requests/fileInfoUpdateReq";
 import { FileInfoUpdate } from "../models/fileUpdate";
+import { FileInfoRes } from "../requests/FileInfoRes";
 
 const fileAccess = new FileInfoAccess();
 
 const logger = createLogger("files business logic")
 
-export async  function createFileInfo(fileInfoReq: FileInfoReq, userId:string,  jwtToken:string):Promise<FileInfo> {
+export async  function createFileInfo(fileInfoReq: FileInfoReq, userId:string,  jwtToken:string):Promise<FileInfoRes> {
     logger.info(" proccessing request ", {fileInfoReq: fileInfoReq, userId: userId, jwtToken: jwtToken})
     const fileInfo: FileInfo = {
         userId: userId,
@@ -21,7 +22,12 @@ export async  function createFileInfo(fileInfoReq: FileInfoReq, userId:string,  
         modifiedAt: new Date().toISOString(),
         fileUrl: ""
     }
-    return await fileAccess.createFileInfo(fileInfo)
+    const signedUrl = fileAccess.generateSignedUrl(fileInfo.fileId)
+    const data =  await fileAccess.createFileInfo(fileInfo)
+    return {
+        ...data,
+        uploadUrl: signedUrl
+    }
 }
 
 export async  function getFileInfo(fileId: string):Promise<FileInfo> {
