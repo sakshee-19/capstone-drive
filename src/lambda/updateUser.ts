@@ -2,6 +2,8 @@ import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } f
 import { modifyUser }  from "../businessLogic/users"
 import { createLogger } from "../utils/logger";
 import { UserUpdateReq } from "../requests/userUpdateReq";
+import { returnError } from "../utils/errorResponse";
+import { getToken } from "../auth/utils";
 
 const logger = createLogger("update User")
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent ): Promise<APIGatewayProxyResult> => {
@@ -9,16 +11,13 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     try {
         const userUpdate: UserUpdateReq = JSON.parse(event.body)
         const jwtToken = getToken(event.headers.Authorization)
+        if(!jwtToken)
+          return returnError(403, "Auth Token Required")
+
         const userId = event.pathParameters.userId
         const item = await modifyUser(userUpdate, userId, jwtToken)
         if(item == undefined) {
-            return {
-                statusCode: 400,
-                headers: {
-                  'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify("user does not exist")
-              }    
+            return returnError(400, "user does not exist")
         }
         return {
             statusCode: 200,
@@ -30,16 +29,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
     } catch (e) {
         logger.info("caught error ", {error: e})
-        return {
-            statusCode: 400,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({})
-        }
+        return returnError(400, e.message)
     }
-}
-
-function getToken(auth: string) {
-    return auth.split(" ")[1]
 }

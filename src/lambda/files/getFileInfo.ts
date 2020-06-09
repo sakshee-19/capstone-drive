@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } f
 import { createLogger } from "../../utils/logger";
 import { getToken } from "../../auth/utils";
 import { getFileInfo } from "../../businessLogic/files";
+import { returnError } from "../../utils/errorResponse";
 
 const logger = createLogger("get a file ")
 export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
@@ -9,12 +10,12 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
     try{
         const jwtToken = getToken(event.headers.Authorization)
         if(!jwtToken){
-            return returnError("Auth Token Required")
+            return returnError(403, "Auth Token Required")
         }
         const fileId = event.pathParameters.fileId
         const res = await getFileInfo(fileId)
         if(!res){
-            return returnError("file does  not exist")
+            return returnError(404, "file does  not exist")
         }
         return {
             statusCode: 200,
@@ -26,16 +27,6 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
         }
     } catch (e) {
         logger.info("caught error ", {error: e})
-        return returnError (e.message)
-    }
-}
-
-function returnError(message:string) {
-    return {
-        statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify(message)
+        return returnError (400, e.message)
     }
 }

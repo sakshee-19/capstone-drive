@@ -3,6 +3,7 @@ import { createLogger } from "../../utils/logger";
 import { getToken } from "../../auth/utils";
 import { modifyFileInfo } from "../../businessLogic/files";
 import { FileInfoUpdateReq } from "../../requests/fileInfoUpdateReq";
+import { returnError } from "../../utils/errorResponse";
 
 const logger = createLogger("update a file ")
 export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) : Promise<APIGatewayProxyResult> => {
@@ -10,7 +11,7 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
     try{
         const jwtToken = getToken(event.headers.Authorization)
         if(!jwtToken){
-            return returnError(400, "Auth Token Required")
+            return returnError(403, "Auth Token Required")
         }
         const userId = event.pathParameters.userId
         const fileId = event.pathParameters.fileId
@@ -31,16 +32,5 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
     } catch (e) {
         logger.info("caught error ", {error: e})
         return returnError (400, e.message)
-    }
-}
-
-function returnError(code: number, message:string) {
-    return {
-        statusCode: code,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true
-        },
-        body: JSON.stringify(message)
     }
 }
