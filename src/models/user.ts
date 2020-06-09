@@ -6,5 +6,6 @@ export interface User {
     createdAt: string,
     modifiedAt: string,
     city: string,
-    auth: string
+    auth: string,
+    access: Array<string>
 }

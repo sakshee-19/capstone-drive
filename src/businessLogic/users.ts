@@ -20,6 +20,7 @@ export async  function createUser(userReq: UserRequest, jwtToken:string):Promise
         ...userReq,
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
+        access: [],
         auth: userAuthId
     }
     return await userAccess.createUser(user)
@@ -44,8 +45,21 @@ export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, 
         modifiedAt: new Date().toISOString(),
     }
     return await userAccess.updateUser(userId, user, auth)
-} catch(e) {
-    logger.info("caught error", {error: e})
-    return undefined
+    } catch(e) {
+        logger.info("caught error", {error: e})
+        return undefined
+    }
 }
+
+export async  function shareFile(fileId: string, userId: string, shareWith: string,  jwtToken:string) {
+    try{
+    const auth = parseUser(jwtToken)
+    logger.info(" proccessing request ", { userId: userId})
+
+    return await userAccess.shareFileWithUser(userId, fileId, shareWith, auth)
+    } catch(e) {
+        logger.info("caught error", {error: e})
+        return undefined
+    }
 }
+

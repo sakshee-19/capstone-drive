@@ -2,6 +2,7 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import * as AWS  from 'aws-sdk'
 import { User } from '../models/user'
 import { UserUpdateReq } from "../requests/userUpdateReq";
+import { returnError } from "../utils/errorResponse";
 
 export class UserAccess {
     
@@ -62,7 +63,42 @@ export class UserAccess {
             console.log("error in update ",e.message)
             return undefined
         }
-    }   
+    }
+    
+    async shareFileWithUser(userId: string, fileId: string, shareWith:string,  auth: string) {
+        try {
+            const userShare = await this.getUser(shareWith)
+            const user = await this.getUser(userId)
+            console.log("user  ", user)
+            if(!user) {
+                return returnError(404, "user does not exists")
+            }
+            if( user.auth !== auth) {
+                return returnError(400, "User not authorised to perform this operation")
+            }
+
+            const accessList: Array<string> = userShare.access;
+            if(accessList.indexOf(fileId)== -1){
+                accessList.push(fileId);
+            }
+            
+            console.log("data passes to update fileInfo ", shareWith)
+            const updatedFileInfo = await this.docClient.update({
+                TableName: this.userTable,
+                Key: {userId: shareWith},
+                UpdateExpression: "set access=:accessList",
+                ExpressionAttributeValues: {
+                    ":accessList": accessList
+                },
+                ReturnValues: 'UPDATED_NEW'
+            }).promise()
+            console.log("updated fileInfo ", updatedFileInfo);
+            return updatedFileInfo
+        } catch(e) {
+            console.log("error in update ",e.message)
+            return returnError(400, e.message)
+        }
+    }
 }
 
 function createDynamoDBClient() {

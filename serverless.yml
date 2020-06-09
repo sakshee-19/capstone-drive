@@ -83,6 +83,40 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+
+  shareFile:
+    handler: src/lambda/shareFile.handler
+    events:
+      - http:
+          method: patch
+          path: share/user/{userId}/file/{fileId}
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+  
+  accessFile:
+    handler: src/lambda/files/getAccessFiles.handler
+    events:
+      - http:
+          method: patch
+          path: share/user/{userId}/file
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:QueryItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+
   createFilesInfo:
     handler: src/lambda/files/createFilesInfo.handler
     events:
