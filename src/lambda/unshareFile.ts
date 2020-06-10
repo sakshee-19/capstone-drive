@@ -15,11 +15,11 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
           const fileId = event.pathParameters.fileId
           const userId = event.pathParameters.userId
-          const shareWithUserId = JSON.parse(event.body)
+          const unshareWithUserId = JSON.parse(event.body)
 
-        const item = await unshareFile(fileId, userId, shareWithUserId.userId,  jwtToken)
+        const item = await unshareFile(fileId, userId, unshareWithUserId.userId,  jwtToken)
         if(item == undefined) {
-            return returnError(400, "user does not exist")
+            return returnError(400, "bad request")
         }
         return {
             statusCode: 200,

@@ -10,7 +10,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     const userId = event.pathParameters.userId;
 
     const item = await get(userId)
-    console.log(item)
+
+    logger.info("after methods ", item);
+    
     if(item == undefined) {
         return returnError(404, "user does not exist")
     }
