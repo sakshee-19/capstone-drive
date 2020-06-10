@@ -14,6 +14,7 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
         }
         const userId = event.pathParameters.userId
         const res = await getAccessableFiles(userId, jwtToken)
+        logger.info("data returned ", {result: res});
         return {
             statusCode: 200,
             headers: {

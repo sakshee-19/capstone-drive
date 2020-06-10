@@ -1,10 +1,10 @@
 import { APIGatewayProxyHandler, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import {  shareFile }  from "../businessLogic/users"
+import { unshareFile }  from "../businessLogic/users"
 import { createLogger } from "../utils/logger";
 import { returnError } from "../utils/errorResponse";
 import { getToken } from "../auth/utils";
 
-const logger = createLogger("share file with  User")
+const logger = createLogger("unshare file with user ")
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent ): Promise<APIGatewayProxyResult> => {
     logger.info("processing event ", {event: event})
     try {
@@ -17,7 +17,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
           const userId = event.pathParameters.userId
           const shareWithUserId = JSON.parse(event.body)
 
-        const item = await shareFile(fileId, userId, shareWithUserId.userId,  jwtToken)
+        const item = await unshareFile(fileId, userId, shareWithUserId.userId,  jwtToken)
         if(item == undefined) {
             return returnError(400, "user does not exist")
         }

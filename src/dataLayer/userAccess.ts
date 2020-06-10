@@ -99,6 +99,41 @@ export class UserAccess {
             return returnError(400, e.message)
         }
     }
+
+    async unshareFileWithUser(userId: string, fileId: string, unshareWith:string,  auth: string) {
+        try {
+            const userShare = await this.getUser(unshareWith)
+            const user = await this.getUser(userId)
+            console.log("user  ", user)
+            if(!user) {
+                return returnError(404, "user does not exists")
+            }
+            if( user.auth !== auth) {
+                return returnError(400, "User not authorised to perform this operation")
+            }
+
+            const accessList: Array<string> = userShare.access;
+            const index = accessList.indexOf(fileId);
+            if(index != 1){
+                accessList.splice(index, 1);
+            }
+            console.log("data passes to update fileInfo ", unshareWith)
+            const updatedFileInfo = await this.docClient.update({
+                TableName: this.userTable,
+                Key: {userId: unshareWith},
+                UpdateExpression: "set access=:accessList",
+                ExpressionAttributeValues: {
+                    ":accessList": accessList
+                },
+                ReturnValues: 'UPDATED_NEW'
+            }).promise()
+            console.log("updated fileInfo ", updatedFileInfo);
+            return updatedFileInfo
+        } catch(e) {
+            console.log("error in update ",e.message)
+            return returnError(400, e.message)
+        }
+    }
 }
 
 function createDynamoDBClient() {

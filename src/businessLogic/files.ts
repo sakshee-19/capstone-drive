@@ -65,7 +65,9 @@ export async function getAccessableFiles(userId: string, jwtToken:string) {
     try{
         const auth = parseUser(jwtToken)
         logger.info(" proccessing request ", { userId: userId, auth:auth})
-        return await fileAccess.getAccessableFileDetails( userId)
+        const data = await fileAccess.getAccessableFileDetails(userId)
+        console.log("data files bl ", data)
+        return data
     } catch(e) {
         logger.info("caught error", {error: e})
         return e.message

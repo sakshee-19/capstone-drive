@@ -37,7 +37,7 @@ export class FileInfoAccess {
                 ':fileId': fileId
             }
         }).promise()
-        console.log(" result ", file)
+        // console.log(" result ", file)
         return file.Items[0] as FileInfo
     }
 
@@ -130,17 +130,22 @@ export class FileInfoAccess {
                 return returnError(404, "user does not exists")
             }
             const fileList = user.access;
+            console.log(fileList)
+            const detList = new Array();
+            for( const fileIds of fileList)    {
+                const data =  await this.getFileInfo(fileIds)
+                if(data)
+                    detList.push(data)
+            }
+            // const data = await this.docClient.query({
+            //     TableName: this.fileInfoTable,
+            //     FilterExpression: "fileId IN :fileList",
+            //     ExpressionAttributeValues: {
+            //         ":fileList": fileList
+            //     }
+            // }).promise()
 
-            const data = await this.docClient.query({
-                TableName: this.fileInfoTable,
-                KeyConditionExpression: "fileId in (:fileList)",
-                ExpressionAttributeValues: {
-                    ":fileList": fileList
-                }
-            }).promise()
-
-            console.log(data.Items)
-            return data.Items
+            return detList
         } catch (e) {
             console.log("error in update ",e.message)
             return returnError(400, e.message)    

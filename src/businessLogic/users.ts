@@ -63,3 +63,14 @@ export async  function shareFile(fileId: string, userId: string, shareWith: stri
     }
 }
 
+export async  function unshareFile(fileId: string, userId: string, unshareWith: string,  jwtToken:string) {
+    try{
+    const auth = parseUser(jwtToken)
+    logger.info(" proccessing request ", { userId: userId})
+
+    return await userAccess.unshareFileWithUser(userId, fileId, unshareWith, auth)
+    } catch(e) {
+        logger.info("caught error", {error: e})
+        return undefined
+    }
+}
