@@ -46,7 +46,6 @@ export async  function deleteFileInfo(fileId:string,userId: string, jwtToken: st
     return await fileAccess.deleteFileInfo(fileId, userId, auth)
 }
 
-
 export async function modifyFileInfo(fileInfoUpdateReq: FileInfoUpdateReq, userId: string, fileId: string,  jwtToken:string) {
     try{
         const auth = parseUser(jwtToken)
@@ -56,6 +55,19 @@ export async function modifyFileInfo(fileInfoUpdateReq: FileInfoUpdateReq, userI
             modifiedAt: new Date().toISOString(),
         }
         return await fileAccess.updateFileInfo(fileId, userId, fileInfo, auth)
+    } catch(e) {
+        logger.info("caught error", {error: e})
+        return e.message
+    }
+}
+
+export async function getAccessableFiles(userId: string, jwtToken:string) {
+    try{
+        const auth = parseUser(jwtToken)
+        logger.info(" proccessing request ", { userId: userId, auth:auth})
+        const data = await fileAccess.getAccessableFileDetails(userId)
+        console.log("data files bl ", data)
+        return data
     } catch(e) {
         logger.info("caught error", {error: e})
         return e.message
