@@ -4,6 +4,15 @@ service:
 #app: your-app-name
 #org: your-org-name
 
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+  - serverless-iam-roles-per-function
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-aws-documentation
+  - serverless-reqvalidator-plugin
+
 custom:
   webpack:
     webpackConfig: ./webpack.config.js
@@ -17,13 +26,32 @@ custom:
       migrate: true
     stages:
       - dev
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Drive API
+        description: Drive
+    models:
+      - name: createUserReq
+        contentType: application/json
+        schema: ${file(src/json/user/create.json)}
+      - name: updateUserReq
+        contentType: application/json
+        schema: ${file(src/json/user/update.json)}
+      - name: createFileReq
+        contentType: application/json
+        schema: ${file(src/json/file/create.json)}
+      - name: updateFileReq
+        contentType: application/json
+        schema: ${file(src/json/file/update.json)}
+      - name: shareFileReq
+        contentType: application/json
+        schema: ${file(src/json/user/share.json)}
+      - name: unshareFileReq
+        contentType: application/json
+        schema: ${file(src/json/user/unshare.json)}
 
-# Add the serverless-webpack plugin
-plugins:
-  - serverless-webpack
-  - serverless-iam-roles-per-function
-  - serverless-dynamodb-local
-  - serverless-offline
 
 provider:
   name: aws
@@ -54,6 +82,12 @@ functions:
           authorizer: RS256Auth
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: create a new user 
+            description: create a new user
+            requestModels:
+              'application/json': createUserReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -83,6 +117,12 @@ functions:
           authorizer: RS256Auth
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: update a user 
+            description: update a user
+            requestModels:
+              'application/json': updateUserReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -99,6 +139,12 @@ functions:
           authorizer: RS256Auth
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: share file
+            description: share file
+            requestModels:
+              'application/json': shareFileReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -116,6 +162,12 @@ functions:
           authorizer: RS256Auth
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: unshare file 
+            description: unshare file
+            requestModels:
+              'application/json': unshareFileReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -150,6 +202,12 @@ functions:
           authorizer: RS256Auth
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: create a new file 
+            description: create a new file
+            requestModels:
+              'application/json': createFileReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -195,6 +253,12 @@ functions:
           path: users/{userId}/files/{fileId}
           cors: true
           credentials: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: update a  file 
+            description: create a file
+            requestModels:
+              'application/json': updateFileReq
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -233,6 +297,15 @@ functions:
 #  resourcess
 resources:
   Resources:
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId: 
+          Ref: 'ApiGatewayRestApi'
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
