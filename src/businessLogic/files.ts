@@ -54,14 +54,16 @@ export async function modifyFileInfo(fileInfoUpdateReq: FileInfoUpdateReq, userI
         ...fileInfoUpdateReq,
         modifiedAt: new Date().toISOString(),
     }
-    return await fileAccess.updateFileInfo(fileId, userId, fileInfo, auth)
-
+    const signedUrl = fileAccess.generateSignedUrl(fileId)
+    const data = await fileAccess.updateFileInfo(fileId, userId, fileInfo, auth)
+    return {
+        ...data.Attributes,
+        uploadUrl: signedUrl
+    }
 }
 
 export async function getAccessableFiles(userId: string, jwtToken:string) {
     const auth = parseUser(jwtToken)
     logger.info(" proccessing request ", { userId: userId, auth:auth})
-    const data = await fileAccess.getAccessableFileDetails(userId, auth)
-    console.log("data files bl ", data)
-    return data
+    return await fileAccess.getAccessableFileDetails(userId, auth)
 }
