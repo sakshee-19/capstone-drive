@@ -224,6 +224,7 @@ functions:
           path: share/users/{userId}/files
           cors: true
           credentials: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -279,6 +280,7 @@ functions:
           method: get
           path: files/{fileId}
           cors: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -298,6 +300,7 @@ functions:
           method: get
           path: users/{userId}/files
           cors: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -317,6 +320,7 @@ functions:
           method: patch
           path: users/{userId}/files/{fileId}
           cors: true
+          authorizer: RS256Auth
           credentials: true
           reqValidatorName: RequestBodyValidator
           documentation:
@@ -354,6 +358,7 @@ functions:
           path: users/{userId}/files/{fileId}
           cors: true
           credentials: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
