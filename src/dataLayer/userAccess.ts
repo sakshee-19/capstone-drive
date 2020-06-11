@@ -1,16 +1,19 @@
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import * as AWS  from 'aws-sdk'
+import * as AWSXRay from 'aws-xray-sdk';
 import { User } from '../models/user'
 import { returnError } from "../utils/errorResponse";
 import { createLogger } from "../utils/logger";
 import { UserUpdate } from "../models/userUpdate";
 
+const XAWS = AWSXRay.captureAWS(AWS)
 export class UserAccess {
     
     constructor (
         private readonly docClient: DocumentClient = createDynamoDBClient(),
         private readonly userTable: string = process.env.USERS,
-        private readonly logger = createLogger("user access")
+        private readonly logger = createLogger("user access"),
+        
     ){}
 
     async createUser(newUser: User): Promise<User>{
@@ -143,10 +146,10 @@ export class UserAccess {
 function createDynamoDBClient() {
     if(process.env.IS_OFFLINE) {
         console.log("offline ");
-        return new AWS.DynamoDB.DocumentClient({
+        return new XAWS.DynamoDB.DocumentClient({
             region: 'localhost',
             endpoint: 'http://localhost:8000'
         })
     }
-    return new AWS.DynamoDB.DocumentClient()
+    return new XAWS.DynamoDB.DocumentClient()
 }

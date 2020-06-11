@@ -1,10 +1,12 @@
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import * as AWS  from 'aws-sdk'
+import * as AWSXRay from 'aws-xray-sdk';
 import { FileInfo } from '../models/fileInfo'
 import { FileInfoUpdate } from "../models/fileUpdate";
 import { UserAccess } from "./userAccess";
 import { returnError } from "../utils/errorResponse";
 
+const XAWS = AWSXRay.captureAWS(AWS)
 export class FileInfoAccess {
     
     constructor (
@@ -157,16 +159,16 @@ export class FileInfoAccess {
 function createDynamoDBClient() {
     if(process.env.IS_OFFLINE) {
         console.log("offline ");
-        return new AWS.DynamoDB.DocumentClient({
+        return new XAWS.DynamoDB.DocumentClient({
             region: 'localhost',
             endpoint: 'http://localhost:8000'
         })
     }
-    return new AWS.DynamoDB.DocumentClient()
+    return new XAWS.DynamoDB.DocumentClient()
 }
 
 function  createS3() {
-    return new AWS.S3({
+    return new XAWS.S3({
         signatureVersion: 'v4'
     })
 }
