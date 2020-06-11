@@ -70,10 +70,10 @@ export class FileInfoAccess {
                 TableName: this.fileInfoTable,
                 Key: {fileId, userId},
                 ExpressionAttributeNames: {"#N" : "name"},
-                UpdateExpression: "set #N=:filename, descripition=:descripition, modifiedAt=:modifiedAt",
+                UpdateExpression: "set #N=:filename, description=:descripition, modifiedAt=:modifiedAt",
                 ExpressionAttributeValues: {
                     ":filename": fileInfoData.name,
-                    ":descripition": fileInfoData.description,
+                    ":description": fileInfoData.description,
                     ":modifiedAt": fileInfoData.modifiedAt
                 },
                 ReturnValues: 'UPDATED_NEW'

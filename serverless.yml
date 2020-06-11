@@ -42,12 +42,16 @@ provider:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
 
 functions:
+  RS256Auth:
+    handler: src/lambda/auth/authrs256.handler
+  
   createUser:
     handler: src/lambda/createUser.handler
     events:
       - http:
           method: post
           path: users
+          authorizer: RS256Auth
           cors: true
           credentials: true
     iamRoleStatements:
@@ -62,6 +66,7 @@ functions:
       - http:
           method: get
           path: users/{userId}
+          authorizer: RS256Auth
           cors: true
     iamRoleStatements:
       - Effect: Allow
@@ -75,6 +80,7 @@ functions:
       - http:
           method: patch
           path: users/{userId}
+          authorizer: RS256Auth
           cors: true
           credentials: true
     iamRoleStatements:
@@ -89,7 +95,8 @@ functions:
     events:
       - http:
           method: patch
-          path: share/user/{userId}/file/{fileId}
+          path: share/users/{userId}/files/{fileId}
+          authorizer: RS256Auth
           cors: true
           credentials: true
     iamRoleStatements:
@@ -98,12 +105,15 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      
+
   unshareFile:
     handler: src/lambda/unshareFile.handler
     events:
       - http:
           method: patch
-          path: unshare/user/{userId}/file/{fileId}
+          path: unshare/users/{userId}/files/{fileId}
+          authorizer: RS256Auth
           cors: true
           credentials: true
     iamRoleStatements:
@@ -117,15 +127,15 @@ functions:
     handler: src/lambda/files/getAccessFiles.handler
     events:
       - http:
-          method: patch
-          path: share/user/{userId}/file
+          method: get
+          path: share/users/{userId}/files
           cors: true
           credentials: true
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:QueryItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}/*
       - Effect: Allow
         Action:
           - dynamodb:GetItem
@@ -137,6 +147,7 @@ functions:
       - http:
           method: post
           path: users/{userId}/files
+          authorizer: RS256Auth
           cors: true
           credentials: true
     iamRoleStatements:
@@ -144,6 +155,11 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+          - s3:PutObject
+        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
 
   getFileInfo:
     handler: src/lambda/files/getFileInfo.handler
@@ -155,9 +171,9 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
-  
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}/*
+
   getFilesInfo:
     handler: src/lambda/files/getAllFilesInfo.handler
     events:
@@ -168,7 +184,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:GetItem
+          - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
   
   updateFileInfo:
@@ -189,6 +205,11 @@ functions:
         Action:
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+          - s3:PutObject
+        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
   
   deleteFileInfo:
     handler: src/lambda/files/deleteFileInfo.handler

@@ -9,7 +9,7 @@ import * as uuid from "uuid"
 
 const userAccess = new UserAccess();
 
-const logger = createLogger("users bl")
+const logger = createLogger("users business layer")
 
 export async  function createUser(userReq: UserRequest, jwtToken:string):Promise<User> {
     const userAuthId = parseUser(jwtToken);
@@ -54,7 +54,7 @@ export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, 
 export async  function shareFile(fileId: string, userId: string, shareWith: string,  jwtToken:string) {
     try{
     const auth = parseUser(jwtToken)
-    logger.info(" proccessing request ", { userId: userId})
+    logger.info(" proccessing request ", { userId: userId, fileId: fileId, shareWith: shareWith})
 
     return await userAccess.shareFileWithUser(userId, fileId, shareWith, auth)
     } catch(e) {

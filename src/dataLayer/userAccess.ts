@@ -1,18 +1,20 @@
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import * as AWS  from 'aws-sdk'
 import { User } from '../models/user'
-import { UserUpdateReq } from "../requests/userUpdateReq";
 import { returnError } from "../utils/errorResponse";
+import { createLogger } from "../utils/logger";
+import { UserUpdate } from "../models/userUpdate";
 
 export class UserAccess {
     
     constructor (
         private readonly docClient: DocumentClient = createDynamoDBClient(),
-        private readonly userTable: string = process.env.USERS
+        private readonly userTable: string = process.env.USERS,
+        private readonly logger = createLogger("user access")
     ){}
 
     async createUser(newUser: User): Promise<User>{
-        console.log("createing user in user access ", newUser)
+        this.logger.info("creating user in user access ", newUser)
         await this.docClient.put({
             TableName: this.userTable,
             Item: newUser
@@ -33,35 +35,36 @@ export class UserAccess {
             TableName: this.userTable,
             Key: {userId}
         }).promise()
-        console.log(result)
+        this.logger.info({result: result})
         return result.Item as User
     } 
 
 
-    async updateUser(userId:string, userData: UserUpdateReq, auth: string) {
+    async updateUser(userId:string, userData: UserUpdate, auth: string) {
         try {
             const user = await this.getUser(userId)
             console.log("user ", user)
             if( user.auth !== auth) {
-                return 
+                return returnError(400, "auth not matched") 
             }
-            console.log("data passes to update user ",userData)
+            this.logger.info("data passes to update user ",{userData: userData, userId: userId})
             const updatedUser = await this.docClient.update({
                 TableName: this.userTable,
                 Key: {userId},
-                UpdateExpression: "set city=:city, email=:email, mobile=:mobile",
+                UpdateExpression: "set city=:city, email=:email, mobile=:mobile, modifiedAt=:modifiedAt",
                 ExpressionAttributeValues: {
                     ":city": userData.city,
                     ":email": userData.email,
-                    ":mobile": userData.mobile
+                    ":mobile": userData.mobile,
+                    ":modifiedAt": userData.modifiedAt
                 },
                 ReturnValues: 'UPDATED_NEW'
             }).promise()
-            console.log("updated user ", updatedUser);
+            this.logger.info("updated user ", {update: updatedUser});
             return updatedUser
         } catch(e) {
-            console.log("error in update ",e.message)
-            return undefined
+            this.logger.info("error in update ",{error: e})
+            return returnError(400, e.message)
         }
     }
     
@@ -69,7 +72,7 @@ export class UserAccess {
         try {
             const userShare = await this.getUser(shareWith)
             const user = await this.getUser(userId)
-            console.log("user  ", user)
+            this.logger.info("user  ", {user:userShare, userCurr: user})
             if(!user) {
                 return returnError(404, "user does not exists")
             }
@@ -82,7 +85,7 @@ export class UserAccess {
                 accessList.push(fileId);
             }
             
-            console.log("data passes to update fileInfo ", shareWith)
+            this.logger.info(" updated list ", {accessList: accessList})
             const updatedFileInfo = await this.docClient.update({
                 TableName: this.userTable,
                 Key: {userId: shareWith},
@@ -92,10 +95,10 @@ export class UserAccess {
                 },
                 ReturnValues: 'UPDATED_NEW'
             }).promise()
-            console.log("updated fileInfo ", updatedFileInfo);
+            this.logger.info("updated fileInfo ", {updatedValue: updatedFileInfo});
             return updatedFileInfo
         } catch(e) {
-            console.log("error in update ",e.message)
+            this.logger.info("error in update ",{error: e})
             return returnError(400, e.message)
         }
     }
@@ -104,7 +107,7 @@ export class UserAccess {
         try {
             const userShare = await this.getUser(unshareWith)
             const user = await this.getUser(userId)
-            console.log("user  ", user)
+            this.logger.info("user  ", {user:user})
             if(!user) {
                 return returnError(404, "user does not exists")
             }
@@ -114,10 +117,11 @@ export class UserAccess {
 
             const accessList: Array<string> = userShare.access;
             const index = accessList.indexOf(fileId);
-            if(index != 1){
+            if(index !== -1){
                 accessList.splice(index, 1);
             }
-            console.log("data passes to update fileInfo ", unshareWith)
+
+            this.logger.info(" data before update ", {unshareWith: unshareWith, accessList: accessList, fileId: fileId})
             const updatedFileInfo = await this.docClient.update({
                 TableName: this.userTable,
                 Key: {userId: unshareWith},
@@ -127,10 +131,10 @@ export class UserAccess {
                 },
                 ReturnValues: 'UPDATED_NEW'
             }).promise()
-            console.log("updated fileInfo ", updatedFileInfo);
+            this.logger.info("updated fileInfo ", {updatedValue: updatedFileInfo});
             return updatedFileInfo
         } catch(e) {
-            console.log("error in update ",e.message)
+            this.logger.info("error in update ",{error: e})
             return returnError(400, e.message)
         }
     }
