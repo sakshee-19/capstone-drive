@@ -38,4 +38,4 @@ A WebApp which mimics feature of google drive with limited features.
 
 * [User APIs](https://github.com/sakshee-19/capstone-drive/blob/master/documentation/file-api.md)
 * [File APIs](https://github.com/sakshee-19/capstone-drive/blob/master/documentation/user-api.md)
-
+* [POSTMAN Collection](https://www.postman.com/collections/58e7dcd2379cd993fb5c)
