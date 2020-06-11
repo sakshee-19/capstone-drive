@@ -25,14 +25,7 @@ export class UserAccess {
         
         return newUser;
     }
-
-    async getAllUser(): Promise<User[]> {
-        const result = await this.docClient.scan({
-            TableName: this.userTable
-        }).promise()
-        return result.Items as User[]
-    }
-
+    
     async getUser(userId: string): Promise<User> {
         const result = await this.docClient.get({
             TableName: this.userTable,
@@ -46,11 +39,6 @@ export class UserAccess {
     async updateUser(userId:string, userData: UserUpdate, auth: string) {
         const user = await this.validateUserWithAuthToken(userId, auth);
         try {
-            // const user = await this.getUser(userId)
-            // console.log("user ", user)
-            // if( user.auth !== auth) {
-            //     return returnError(400, "user not authorised to perform this operation")
-            // }
             this.logger.info("data passes to update user ",{userData: userData, userId: user})
             const updatedUser = await this.docClient.update({
                 TableName: this.userTable,
@@ -75,11 +63,6 @@ export class UserAccess {
     async deleteUser(userId:string, auth: string) {
         const user = await this.validateUserWithAuthToken(userId, auth);
         try {
-            // const user = await this.getUser(userId)
-            // console.log("user ", user)
-            // if( user.auth !== auth) {
-            //     return returnError(400, "user not authorised to perform this operation")
-            // }
             this.logger.info("data passes to update user ",{ userId: user})
             const deletedUser = await this.docClient.delete({
                 TableName: this.userTable,
@@ -89,7 +72,7 @@ export class UserAccess {
             return deletedUser
         } catch(e) {
             this.logger.info("error in delete ",{error: e})
-            return returnError(400, e.message)
+            throw returnError(400, e.message)
         }
     }
     
@@ -97,15 +80,7 @@ export class UserAccess {
         const user = await this.validateUserWithAuthToken(userId, auth);
         try {
             const userShare = await this.getUser(shareWith)
-            // const user = await this.getUser(userId)
             this.logger.info("user  ", {user:userShare, userCurr: user})
-            // if(!user) {
-            //     return returnError(404, "user does not exists")
-            // }
-            // if( user.auth !== auth) {
-            //     return returnError(400, "User not authorised to perform this operation")
-            // }
-
             const accessList: Array<string> = userShare.access;
             if(accessList.indexOf(fileId)== -1){
                 accessList.push(fileId);
@@ -125,7 +100,7 @@ export class UserAccess {
             return updatedFileInfo
         } catch(e) {
             this.logger.info("error in update ",{error: e})
-            return returnError(400, e.message)
+            throw returnError(400, e.message)
         }
     }
 
@@ -133,15 +108,7 @@ export class UserAccess {
         const user = await this.validateUserWithAuthToken(userId, auth);
         try {
             const userShare = await this.getUser(unshareWith)
-            // const user = await this.getUser(userId)
             this.logger.info("user  ", {user:user, userShare: userShare})
-            // if(!user) {
-            //     return returnError(404, "user does not exists")
-            // }
-            // if( user.auth !== auth) {
-            //     return returnError(400, "User not authorised to perform this operation")
-            // }
-
             const accessList: Array<string> = userShare.access;
             const index = accessList.indexOf(fileId);
             if(index !== -1){
@@ -162,7 +129,7 @@ export class UserAccess {
             return updatedFileInfo
         } catch(e) {
             this.logger.info("error in update ",{error: e})
-            return returnError(400, e.message)
+            throw returnError(400, e.message)
         }
     }
     async validateUserWithAuthToken(userId: string, auth: string) {

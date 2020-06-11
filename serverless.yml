@@ -158,6 +158,28 @@ functions:
           - "xray:PutTelemetryRecords"
         Resource:
           - "*"
+  
+  deleteUser:
+    handler: src/lambda/deleteUser.handler
+    events:
+      - http:
+          method: delete
+          path: users/{userId}
+          authorizer: RS256Auth
+          cors: true
+          credentials: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   shareFile:
     handler: src/lambda/shareFile.handler
@@ -306,6 +328,10 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
       - Effect: "Allow" # xray permissions (required)
         Action:
           - "xray:PutTraceSegments"

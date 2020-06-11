@@ -31,10 +31,10 @@ export async  function get(userId: string):Promise<User> {
     return await userAccess.getUser(userId)
 }
 
-export async  function getAll():Promise<User[]> {
-    logger.info(" proccessing request ",)
-    return await userAccess.getAllUser()
-}
+// export async  function getAll():Promise<User[]> {
+//     logger.info(" proccessing request ",)
+//     return await userAccess.getAllUser()
+// }
 
 export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, jwtToken:string) {
     const auth = parseUser(jwtToken)
