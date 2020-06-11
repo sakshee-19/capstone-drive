@@ -18,6 +18,21 @@ A WebApp which mimics feature of google drive with limited features.
     * Get all Files Accessable to User (all the files which are shared with curr user by other users)
     * Get All files create by the User
 
+## Tools
+* serverless framework
+
+### concept/plugins
+* RSA256 authenticated
+* AWS CloudFormation
+* API Gateway
+* Lambda Function
+* serverless-webpack
+* serverless-iam-roles-per-function
+* serverless-dynamodb-local
+* serverless-offline
+* serverless-aws-documentation
+* serverless-reqvalidator-plugin etc
+
 
 **Documentation API Exposed**
 
