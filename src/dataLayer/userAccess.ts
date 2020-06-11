@@ -44,13 +44,14 @@ export class UserAccess {
 
 
     async updateUser(userId:string, userData: UserUpdate, auth: string) {
+        const user = await this.validateUserWithAuthToken(userId, auth);
         try {
-            const user = await this.getUser(userId)
-            console.log("user ", user)
-            if( user.auth !== auth) {
-                return returnError(400, "auth not matched") 
-            }
-            this.logger.info("data passes to update user ",{userData: userData, userId: userId})
+            // const user = await this.getUser(userId)
+            // console.log("user ", user)
+            // if( user.auth !== auth) {
+            //     return returnError(400, "user not authorised to perform this operation")
+            // }
+            this.logger.info("data passes to update user ",{userData: userData, userId: user})
             const updatedUser = await this.docClient.update({
                 TableName: this.userTable,
                 Key: {userId},
@@ -67,21 +68,43 @@ export class UserAccess {
             return updatedUser
         } catch(e) {
             this.logger.info("error in update ",{error: e})
+            throw returnError(400, e.message)
+        }
+    }
+
+    async deleteUser(userId:string, auth: string) {
+        const user = await this.validateUserWithAuthToken(userId, auth);
+        try {
+            // const user = await this.getUser(userId)
+            // console.log("user ", user)
+            // if( user.auth !== auth) {
+            //     return returnError(400, "user not authorised to perform this operation")
+            // }
+            this.logger.info("data passes to update user ",{ userId: user})
+            const deletedUser = await this.docClient.delete({
+                TableName: this.userTable,
+                Key: {userId}
+            }).promise()
+            this.logger.info("deletedUser user ", {deletedUser: deletedUser});
+            return deletedUser
+        } catch(e) {
+            this.logger.info("error in delete ",{error: e})
             return returnError(400, e.message)
         }
     }
     
     async shareFileWithUser(userId: string, fileId: string, shareWith:string,  auth: string) {
+        const user = await this.validateUserWithAuthToken(userId, auth);
         try {
             const userShare = await this.getUser(shareWith)
-            const user = await this.getUser(userId)
+            // const user = await this.getUser(userId)
             this.logger.info("user  ", {user:userShare, userCurr: user})
-            if(!user) {
-                return returnError(404, "user does not exists")
-            }
-            if( user.auth !== auth) {
-                return returnError(400, "User not authorised to perform this operation")
-            }
+            // if(!user) {
+            //     return returnError(404, "user does not exists")
+            // }
+            // if( user.auth !== auth) {
+            //     return returnError(400, "User not authorised to perform this operation")
+            // }
 
             const accessList: Array<string> = userShare.access;
             if(accessList.indexOf(fileId)== -1){
@@ -107,16 +130,17 @@ export class UserAccess {
     }
 
     async unshareFileWithUser(userId: string, fileId: string, unshareWith:string,  auth: string) {
+        const user = await this.validateUserWithAuthToken(userId, auth);
         try {
             const userShare = await this.getUser(unshareWith)
-            const user = await this.getUser(userId)
-            this.logger.info("user  ", {user:user})
-            if(!user) {
-                return returnError(404, "user does not exists")
-            }
-            if( user.auth !== auth) {
-                return returnError(400, "User not authorised to perform this operation")
-            }
+            // const user = await this.getUser(userId)
+            this.logger.info("user  ", {user:user, userShare: userShare})
+            // if(!user) {
+            //     return returnError(404, "user does not exists")
+            // }
+            // if( user.auth !== auth) {
+            //     return returnError(400, "User not authorised to perform this operation")
+            // }
 
             const accessList: Array<string> = userShare.access;
             const index = accessList.indexOf(fileId);
@@ -140,6 +164,19 @@ export class UserAccess {
             this.logger.info("error in update ",{error: e})
             return returnError(400, e.message)
         }
+    }
+    async validateUserWithAuthToken(userId: string, auth: string) {
+        const user = await this.getUser(userId)
+            this.logger.info("user  ", user)
+            if(!user) {
+                this.logger.info("user does not exists ", {userId: userId})
+                throw returnError(404, "user does not exists")
+            }
+            if( user.auth !== auth) {
+                this.logger.info("user and access token auth deos not match")
+                throw returnError(400, "User not authorised to perform this operation")
+            }
+        return user;
     }
 }
 

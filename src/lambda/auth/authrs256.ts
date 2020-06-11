@@ -27,7 +27,7 @@ M3xot4ozbLtKFlk8tm9jiqfeqypGjO5ur9/NIRghnIj018mo9OphBMdBk3g4+yYt
 const logger = createLogger("RSA256");
 
 export const handler = async(event: CustomAuthorizerEvent) :Promise<CustomAuthorizerResult> => {
-    logger.info('Authorizing a user', event.authorizationToken)
+    logger.info('Authorizing a user', event)
   try {
     const jwtToken = await verifyToken(event.authorizationToken)
     logger.info('User was authorized', jwtToken)

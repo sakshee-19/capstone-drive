@@ -13,7 +13,7 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
             return returnError(403, "Auth Token Required")
         }
         const userId = event.pathParameters.userId
-        const res = await getAllFileInfo(userId)
+        const res = await getAllFileInfo(userId, jwtToken)
         return {
             statusCode: 200,
             headers: {
@@ -24,6 +24,6 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
         }
     } catch (e) {
         logger.info("caught error ", {error: e})
-        return returnError (400, e.message)
+        return returnError(e.statusCode, e.body)
     }
 }

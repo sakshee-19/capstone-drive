@@ -17,9 +17,6 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
         const fileId = event.pathParameters.fileId
         const fileBody: FileInfoUpdateReq = JSON.parse(event.body)
         const res = await modifyFileInfo(fileBody, userId, fileId, jwtToken)
-        if(res.Attributes) {
-            return returnError(res.code, res.message)
-        }
         return {
             statusCode: 200,
             headers: {
@@ -27,10 +24,10 @@ export const handler:APIGatewayProxyHandler = async (event: APIGatewayProxyEvent
               'Access-Control-Allow-Credentials': true
             },
             body: JSON.stringify({item: res.Attributes})
-        }    
+        }
 
     } catch (e) {
         logger.info("caught error ", {error: e})
-        return returnError (400, e.message)
+        return returnError(e.statusCode, e.body)
     }
 }

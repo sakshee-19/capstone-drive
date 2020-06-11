@@ -35,9 +35,10 @@ export async  function getFileInfo(fileId: string):Promise<FileInfo> {
     return await fileAccess.getFileInfo(fileId)
 }
 
-export async  function getAllFileInfo(userId: string):Promise<FileInfo[]> {
+export async  function getAllFileInfo(userId: string, jwtToken: string):Promise<FileInfo[]> {
     logger.info(" proccessing request ",{userId: userId})
-    return await fileAccess.getAllFileInfo(userId)
+    const auth = parseUser(jwtToken)
+    return await fileAccess.getAllFileInfo(userId, auth)
 }
 
 export async  function deleteFileInfo(fileId:string,userId: string, jwtToken: string) {
@@ -47,29 +48,20 @@ export async  function deleteFileInfo(fileId:string,userId: string, jwtToken: st
 }
 
 export async function modifyFileInfo(fileInfoUpdateReq: FileInfoUpdateReq, userId: string, fileId: string,  jwtToken:string) {
-    try{
-        const auth = parseUser(jwtToken)
-        logger.info(" proccessing request ", {fileInfoUpdateReq: fileInfoUpdateReq, userId: userId, fileId:fileId})
-        const fileInfo: FileInfoUpdate = {
-            ...fileInfoUpdateReq,
-            modifiedAt: new Date().toISOString(),
-        }
-        return await fileAccess.updateFileInfo(fileId, userId, fileInfo, auth)
-    } catch(e) {
-        logger.info("caught error", {error: e})
-        return e.message
+    const auth = parseUser(jwtToken)
+    logger.info(" proccessing request ", {fileInfoUpdateReq: fileInfoUpdateReq, userId: userId, fileId:fileId})
+    const fileInfo: FileInfoUpdate = {
+        ...fileInfoUpdateReq,
+        modifiedAt: new Date().toISOString(),
     }
+    return await fileAccess.updateFileInfo(fileId, userId, fileInfo, auth)
+
 }
 
 export async function getAccessableFiles(userId: string, jwtToken:string) {
-    try{
-        const auth = parseUser(jwtToken)
-        logger.info(" proccessing request ", { userId: userId, auth:auth})
-        const data = await fileAccess.getAccessableFileDetails(userId)
-        console.log("data files bl ", data)
-        return data
-    } catch(e) {
-        logger.info("caught error", {error: e})
-        return e.message
-    }
+    const auth = parseUser(jwtToken)
+    logger.info(" proccessing request ", { userId: userId, auth:auth})
+    const data = await fileAccess.getAccessableFileDetails(userId, auth)
+    console.log("data files bl ", data)
+    return data
 }

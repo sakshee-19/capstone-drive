@@ -37,7 +37,6 @@ export async  function getAll():Promise<User[]> {
 }
 
 export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, jwtToken:string) {
-    try{
     const auth = parseUser(jwtToken)
     logger.info(" proccessing request ", {userUpdateReq: userUpdateReq, userId: userId})
     const user: UserUpdate = {
@@ -45,32 +44,22 @@ export async  function modifyUser(userUpdateReq: UserUpdateReq, userId: string, 
         modifiedAt: new Date().toISOString(),
     }
     return await userAccess.updateUser(userId, user, auth)
-    } catch(e) {
-        logger.info("caught error", {error: e})
-        return undefined
-    }
+}
+
+export async function deleteUser(userId: string, jwtToken: string) {
+    logger.info("processing req ", {user: userId})
+    const auth = parseUser(jwtToken)
+    return await userAccess.deleteUser(userId, auth);
 }
 
 export async  function shareFile(fileId: string, userId: string, shareWith: string,  jwtToken:string) {
-    try{
     const auth = parseUser(jwtToken)
     logger.info(" proccessing request ", { userId: userId, fileId: fileId, shareWith: shareWith})
-
     return await userAccess.shareFileWithUser(userId, fileId, shareWith, auth)
-    } catch(e) {
-        logger.info("caught error", {error: e})
-        return undefined
-    }
 }
 
 export async  function unshareFile(fileId: string, userId: string, unshareWith: string,  jwtToken:string) {
-    try{
     const auth = parseUser(jwtToken)
     logger.info(" proccessing request ", { userId: userId})
-
     return await userAccess.unshareFileWithUser(userId, fileId, unshareWith, auth)
-    } catch(e) {
-        logger.info("caught error", {error: e})
-        return undefined
-    }
 }
