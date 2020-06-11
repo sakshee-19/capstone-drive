@@ -5,6 +5,7 @@ import { FileInfo } from '../models/fileInfo'
 import { FileInfoUpdate } from "../models/fileUpdate";
 import { UserAccess } from "./userAccess";
 import { returnError } from "../utils/errorResponse";
+import { createLogger } from "../utils/logger";
 
 const XAWS = AWSXRay.captureAWS(AWS)
 export class FileInfoAccess {
@@ -15,11 +16,12 @@ export class FileInfoAccess {
         private readonly fileIndex: string = process.env.FILE_INDEX,
         private readonly userAccess: UserAccess = new UserAccess(),
         private readonly s3Bucket: string = process.env.S3_BUCKET,
+        private readonly logger = createLogger(" file access"),
         private readonly  s3 = createS3()
     ){}
 
     async createFileInfo(newFileInfo: FileInfo): Promise<FileInfo>{
-        console.log("creating fileInfo in access ", newFileInfo)
+        this.logger.info("creating fileInfo in access ", {newFile: newFileInfo})
         newFileInfo.fileUrl = `https://${this.s3Bucket}.s3.amazonaws.com/${newFileInfo.fileId}` 
         await this.docClient.put({
             TableName: this.fileInfoTable,
@@ -30,7 +32,7 @@ export class FileInfoAccess {
     }
 
     async getFileInfo(fileId: string): Promise<FileInfo> {
-        console.log("file id ", fileId)
+        this.logger.info("file id ", {fileId: fileId})
         const file = await this.docClient.query({
             TableName: this.fileInfoTable,
             IndexName: this.fileIndex,
@@ -43,7 +45,8 @@ export class FileInfoAccess {
         return file.Items[0] as FileInfo
     }
 
-    async getAllFileInfo(userId: string): Promise<FileInfo[]> {
+    async getAllFileInfo(userId: string, auth:string): Promise<FileInfo[]> {
+        await this.validateUserWithAuthToken(userId, auth);
         const result = await this.docClient.query({
             TableName: this.fileInfoTable,
             KeyConditionExpression: 'userId = :userId',
@@ -51,23 +54,14 @@ export class FileInfoAccess {
                 ':userId': userId
             }
         }).promise()
-        console.log("after query ", result)
         return result.Items as FileInfo[]
     } 
 
 
     async updateFileInfo(fileId:string, userId:string, fileInfoData: FileInfoUpdate, auth: string) {
+        await this.validateUserWithAuthToken(userId, auth);
         try {
-            const user = await this.userAccess.getUser(userId)
-            console.log("user  ", user)
-            if(!user) {
-                return returnObject(404, "user does not exists")
-            }
-            if( user.auth !== auth) {
-                return returnObject(400, "User not authorised to perform this operation")
-            }
-            
-            console.log("data passes to update fileInfo ",fileInfoData)
+            this.logger.info("data passes to update fileInfo ",{fileinfo: fileInfoData})
             const updatedFileInfo = await this.docClient.update({
                 TableName: this.fileInfoTable,
                 Key: {fileId, userId},
@@ -80,23 +74,24 @@ export class FileInfoAccess {
                 },
                 ReturnValues: 'UPDATED_NEW'
             }).promise()
-            console.log("updated fileInfo ", updatedFileInfo);
+            this.logger.info("updated fileInfo ", {update: updatedFileInfo});
             return updatedFileInfo
         } catch(e) {
-            console.log("error in update ",e.message)
-            return returnObject(400, e.message)
+            this.logger.info("error in update ",{error: e})
+            throw returnError(400, e.message)
         }
     }
     
     async deleteFileInfo(fileId:string, userId:string, auth:string) {
-        const user = await this.userAccess.getUser(userId)
-        console.log("user  ", user)
-        if(!user) {
-            return returnObject(404, "user does not exists")
-        }
-        if( user.auth !== auth) {
-            return returnObject(400,"user not authorised")
-        }
+        await this.validateUserWithAuthToken(userId, auth);
+        // const user = await this.userAccess.getUser(userId)
+        // console.log("user  ", user)
+        // if(!user) {
+        //     return returnObject(404, "user does not exists")
+        // }
+        // if( user.auth !== auth) {
+        //     return returnObject(400,"user not authorised")
+        // }
         try {
             const data = await this.docClient.delete ({
                 TableName: this.fileInfoTable,
@@ -110,7 +105,7 @@ export class FileInfoAccess {
             }
             return Item
         } catch (e) {
-            return returnObject(400, e.message)
+            throw returnError(400, e.message)
         }
     }
 
@@ -122,15 +117,28 @@ export class FileInfoAccess {
         })
     }
 
-   
-   
-    async getAccessableFileDetails(userId: string) {
-        try {
-            const user = await this.userAccess.getUser(userId)
-            console.log("user  ", user)
+    async validateUserWithAuthToken(userId: string, auth: string) {
+        const user = await this.userAccess.getUser(userId)
+            this.logger.info("user  ", user)
             if(!user) {
-                return returnError(404, "user does not exists")
+                this.logger.info("user does not exists ", {userId: userId})
+                throw returnError(404, "user does not exists")
             }
+            if( user.auth !== auth) {
+                this.logger.info("user and access token auth deos not match")
+                throw returnError(400, "User not authorised to perform this operation")
+            }
+        return user;
+    }
+   
+    async getAccessableFileDetails(userId: string, auth:string) {
+        const user = await this.validateUserWithAuthToken(userId, auth);
+        try {
+            // const user = await this.userAccess.getUser(userId)
+            // console.log("user  ", user)
+            // if(!user) {
+            //     return returnError(404, "user does not exists")
+            // }
             const fileList = user.access;
             console.log(fileList)
             const detList = new Array();
@@ -150,7 +158,7 @@ export class FileInfoAccess {
             return detList
         } catch (e) {
             console.log("error in update ",e.message)
-            return returnError(400, e.message)    
+            throw returnError(400, e.message)    
         }
 
     }
@@ -171,11 +179,4 @@ function  createS3() {
     return new XAWS.S3({
         signatureVersion: 'v4'
     })
-}
-function  returnObject(code:number, message: string) {
-    return {
-        "code": code,
-        "error": message,
-        "Attributes": null
-    }   
 }

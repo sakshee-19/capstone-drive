@@ -35,8 +35,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
           }
 
     } catch (e) {
-        console.log("error ",e.message)
         logger.info("could not process request ", {error: e})
-        return returnError(400, e.message)
+        return returnError(e.statusCode, e.body)
     }
 }
