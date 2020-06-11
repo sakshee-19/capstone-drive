@@ -76,7 +76,7 @@ Authorization: Bearer {{authToken}}
     * ResponseBody - 
     ```
       {
-      "Attributes": {
+      "items": {
           "access": [
               "{fileId}"
           ]
@@ -91,7 +91,7 @@ Authorization: Bearer {{authToken}}
     * ResponseBody - 
     ```
       {
-      "Attributes": {
+      "items": {
           "access": [
               "{fileId}"
           ]
