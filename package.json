@@ -24,7 +24,10 @@
     "webpack": "^4.29.0",
     "serverless-dynamodb-local": "^0.2.38",
     "serverless-offline": "^4.10.6",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-plugin-canary-deployments": "^0.4.7",
+    "serverless-reqvalidator-plugin": "^1.0.3"
   },
   "author": "Sakshee Jain",
   "license": "MIT"
