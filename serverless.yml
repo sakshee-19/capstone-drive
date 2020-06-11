@@ -54,6 +54,9 @@ custom:
 
 
 provider:
+  tracing:
+    lambda: true
+    apiGateway: true
   name: aws
   runtime: nodejs10.x
   stage: ${opt:stage, 'dev'} # either provided by user or default dev
@@ -68,6 +71,14 @@ provider:
     FILE_INDEX: FilesIdIndex
     S3_BUCKET: files-upload-sak-${self:provider.stage}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+  
+  iamRoleStatements:
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
 
 functions:
   RS256Auth:
@@ -93,6 +104,12 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   getUser:
     handler: src/lambda/getUser.handler
@@ -107,6 +124,12 @@ functions:
         Action:
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
   
   updateUser:
     handler: src/lambda/updateUser.handler
@@ -129,6 +152,12 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   shareFile:
     handler: src/lambda/shareFile.handler
@@ -151,6 +180,12 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
       
 
   unshareFile:
@@ -174,6 +209,12 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   accessFile:
     handler: src/lambda/files/getAccessFiles.handler
@@ -183,6 +224,7 @@ functions:
           path: share/users/{userId}/files
           cors: true
           credentials: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -192,6 +234,12 @@ functions:
         Action:
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   createFilesInfo:
     handler: src/lambda/files/createFilesInfo.handler
@@ -218,6 +266,12 @@ functions:
           - s3:GetObject
           - s3:PutObject
         Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   getFileInfo:
     handler: src/lambda/files/getFileInfo.handler
@@ -226,11 +280,18 @@ functions:
           method: get
           path: files/{fileId}
           cors: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}/*
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
 
   getFilesInfo:
     handler: src/lambda/files/getAllFilesInfo.handler
@@ -239,11 +300,18 @@ functions:
           method: get
           path: users/{userId}/files
           cors: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
   
   updateFileInfo:
     handler: src/lambda/files/updateFileInfo.handler
@@ -252,6 +320,7 @@ functions:
           method: patch
           path: users/{userId}/files/{fileId}
           cors: true
+          authorizer: RS256Auth
           credentials: true
           reqValidatorName: RequestBodyValidator
           documentation:
@@ -274,6 +343,12 @@ functions:
           - s3:GetObject
           - s3:PutObject
         Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
   
   deleteFileInfo:
     handler: src/lambda/files/deleteFileInfo.handler
@@ -283,6 +358,7 @@ functions:
           path: users/{userId}/files/{fileId}
           cors: true
           credentials: true
+          authorizer: RS256Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -292,6 +368,12 @@ functions:
         Action:
           - dynamodb:GetItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
      
 
 #  resourcess
