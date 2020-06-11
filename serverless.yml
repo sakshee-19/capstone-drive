@@ -135,11 +135,7 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILE_INDEX}
-      - Effect: Allow
-        Action:
-          - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}/*
       - Effect: Allow
         Action:
           - dynamodb:GetItem
@@ -176,12 +172,8 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILE_INDEX}
-      - Effect: Allow
-        Action:
-          - dynamodb:Query
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}
-  
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FILES_INFO}/*
+
   getFilesInfo:
     handler: src/lambda/files/getAllFilesInfo.handler
     events:

@@ -117,7 +117,7 @@ export class UserAccess {
 
             const accessList: Array<string> = userShare.access;
             const index = accessList.indexOf(fileId);
-            if(index != 1){
+            if(index !== -1){
                 accessList.splice(index, 1);
             }
 
